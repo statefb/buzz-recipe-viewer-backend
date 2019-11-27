@@ -1,10 +1,8 @@
 const util = require('./util')
 const Twitter = require('twitter');
 
-var fs = require('fs');
-var token = JSON.parse(fs.readFileSync('twitter_token.json', 'utf8'));
-
-const client = new Twitter(token);
+const token = require('./twitter_token');
+const client = new Twitter(token.token);
 
 exports.getFollowing = ({count=200, since_id=undefined, max_id=undefined}={}) => {
   /**

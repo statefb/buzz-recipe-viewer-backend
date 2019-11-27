@@ -2,18 +2,27 @@ const jobs = require('./jobs');
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 // admin.initializeApp(functions.config().firebase);
-admin.initializeApp();
+// admin.initializeApp();
 
 const api = require('./api')
 const db = require('./db')
 
-exports.addFav = functions.https.onRequest(async (req, res) => {
-  const fav = await api.getFavorites();
-  db.updateAll(fav);
+exports.addAllFavorites = functions.https.onRequest(async (req, res) => {
+  /**
+   * httpリクエストからupdateを呼び指す
+   * テスト用
+   */
+  const fav = await jobs.update();
+  await db.updateAll(fav);
+  res.end();
 })
 
-let firestore = admin.firestore();
-
-exports.addMessage = functions.https.onRequest(async (req, res) => {
-  firestore.collection('messages').doc('test').set({text: 'hogehoge'});
+exports.addFav = functions.https.onRequest(async (req, res) => {
+  /**
+   * httpリクエスト経由でお気に入りをdbに追加する
+   * テスト用
+   */
+  const fav = await api.getFavorites();
+  await db.updateAll(fav);
+  res.end();
 })

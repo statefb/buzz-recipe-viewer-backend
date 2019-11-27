@@ -5,13 +5,15 @@ const util = require('./util')
 exports.update = async () => {
   /**
    * cron task (1 per 1 day)
+   * NOTE: お気に入りのリストを返すのではなく、DBに反映をcron taskでやりたい
    */
   // fetch all favorites using Twitter api.
   let allFavorites;
   try {
     allFavorites = await api.getAllFavorites();
   } catch (error) {
-    console.log('failed to fetch all favorites.');
+    // console.log('failed to fetch all favorites.');
+    throw error
   }
   // filter by cooking developer account ids.
   const cookDevInds = db.getCookDevInds();

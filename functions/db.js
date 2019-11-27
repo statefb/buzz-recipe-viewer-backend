@@ -8,7 +8,7 @@ exports.getCookDevInds = () => {
    * Fetch cook developer account indices.
    * TODO
    */
-  console.log('get cook dev inds: 暫定版');
+  // console.log('get cook dev inds: 暫定版');
   const inds = [
     167256483,  // ラク速レシピのゆかり
     2689624878,  // つくりおき食堂まりえ
@@ -32,7 +32,9 @@ exports.updateAll = async (favorites) => {
    * @param {array} favorites このお気に入りデータで置換する
    */
   const favCollectionRef = db.collection('favorites');
+  const promises = [];
   favorites.forEach(fav => {
-    favCollectionRef.doc(fav.id_str).set(fav);
+    promises.push(favCollectionRef.doc(fav.id_str).set(fav));
   });
+  await Promise.all(promises);
 }
