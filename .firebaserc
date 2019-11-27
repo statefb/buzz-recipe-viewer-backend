@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "release": "buzz-recipe-viewer",
+    "develop": "buzz-recipe-viewer-dev"
+  }
+}
