@@ -39,10 +39,13 @@ exports.updateAll = async (favorites) => {
   await Promise.all(promises);
 }
 
-exports.updateUsers = async (users) => {
+exports.updateFollowings = async (followings) => {
+  /**
+   * DB内の全フォローしているユーザーを更新する
+   */
   const followingRef = db.collection('followings');
   const promises = [];
-  users.forEach(user => {
+  followings.forEach(user => {
     promises.push(followingRef.doc(user.id_str).set(user));
   });
   await Promise.all(promises);

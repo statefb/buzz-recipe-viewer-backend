@@ -2,6 +2,7 @@
  * Endpoints for Firebase functions.
  */
 const jobs = require('./jobs');
+const api = require('./api')
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 // admin.initializeApp(functions.config().firebase);
@@ -21,8 +22,12 @@ exports.addAllFavorites = functions.https.onRequest(async (req, res) => {
 })
 
 exports.addAllUsers = functions.https.onRequest(async (req, res) => {
-  const users = await jobs.collectFollowing();
-  await db.updateAll(users);
+  /**
+   * httpリクエストを使ってDB内の全followingsを更新する
+   * テスト用
+   */
+  const followings = await api.getAllFollowing();
+  await db.updateFollowings(followings);
   res.end();
 })
 

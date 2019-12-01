@@ -6,7 +6,9 @@ exports.update = async () => {
   /**
    * cron task (1 per 1 day)
    * NOTE: お気に入りのリストを返すのではなく、DBに反映をcron taskでやりたい
-   * TODO: フィルタリングを、DB結合後に実施する
+   * TODO: 
+   *  - フィルタリングを、DB結合後に実施する
+   *  - 全フォローユーザーの更新
    */
   // fetch all favorites using Twitter api.
   let allFavorites;
@@ -39,16 +41,6 @@ exports.update = async () => {
   // save to RealtimeDatabase
   // db.updateAll(favorites);
   return favorites;
-}
-
-exports.collectFollowing = async () => {
-  let users;
-  try {
-    users = await api.getAllFollowing();
-  } catch (error) {
-    throw error
-  }
-  return users;
 }
 
 exports.addFavorites = () => {
