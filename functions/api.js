@@ -47,8 +47,8 @@ getAllFavoritesSub = async (favorites, params) => {
   const fav = await exports.getFavorites(params);
   // compress all user obj
   for (let index = 0; index < fav.length; index++) {
-    const element = fav[index];
-    fav[index].user = util.compressUserObj(element);
+    const tweet = fav[index];
+    fav[index].user = util.compressUserObj(tweet.user);
   }
   const oldestIdStr = util.getOldestTweetIdStr(fav);
   if (fav.length === 0 | oldestIdStr === params.max_id) {

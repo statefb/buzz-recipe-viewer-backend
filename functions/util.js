@@ -28,6 +28,9 @@ exports.getMin = (array) => {
 exports.compressUserObj = (user) => {
   /**
    * user-objectの中から必要な情報のみを取得する
+   * ※firestoreはnested-arrayを格納できないため、必要最低限の
+   * 情報のみを格納するために作成
+   * 参考：https://stackoverflow.com/questions/54785637/cloud-functions-error-cannot-convert-an-array-value-in-an-array-value
    */
   return {
     id: user.id,
