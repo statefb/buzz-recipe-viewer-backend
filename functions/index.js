@@ -2,7 +2,6 @@
  * Endpoints for Firebase functions.
  */
 const jobs = require('./jobs');
-const api = require('./api')
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 // admin.initializeApp(functions.config().firebase);
@@ -16,9 +15,14 @@ exports.addAllFavorites = functions.https.onRequest(async (req, res) => {
    * httpリクエストからupdateを呼び指す
    * テスト用
    */
-  const fav = await jobs.update();
-  await db.updateAll(fav);
-  res.end();
+  try {
+    const fav = await jobs.update();
+    await db.updateAll(fav);
+  } catch (error) {
+    console.log(error);
+    res.end(error.message);
+  }
+  res.end("successfully added to firestore.");
 })
 
 exports.addAllUsers = functions.https.onRequest(async (req, res) => {
@@ -26,9 +30,14 @@ exports.addAllUsers = functions.https.onRequest(async (req, res) => {
    * httpリクエストを使ってDB内の全followingsを更新する
    * テスト用
    */
-  const followings = await api.getAllFollowing();
-  await db.updateFollowings(followings);
-  res.end();
+  try {
+    const followings = await api.getAllFollowing();
+    await db.updateFollowings(followings);
+  } catch (error) {
+    console.log(error);
+    res.end(error.message);
+  }
+  res.end("successfully added to firestore.");
 })
 
 exports.addFav = functions.https.onRequest(async (req, res) => {

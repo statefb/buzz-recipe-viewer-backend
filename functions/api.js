@@ -1,3 +1,4 @@
+const bigInt = require("big-integer")
 const util = require('./util')
 const Twitter = require('twitter');
 
@@ -44,12 +45,17 @@ getAllFavoritesSub = async (favorites, params) => {
    * Twitter APIで取得可能なすべてのいいねを取得するコア処理
    */
   const fav = await exports.getFavorites(params);
-  const oldestId = util.getOldestTweetId(fav);
-  if (fav.length === 0 | oldestId == params.max_id) {
+  // compress all user obj
+  for (let index = 0; index < fav.length; index++) {
+    const element = fav[index];
+    fav[index].user = util.compressUserObj(element);
+  }
+  const oldestIdStr = util.getOldestTweetIdStr(fav);
+  if (fav.length === 0 | oldestIdStr === params.max_id) {
     return favorites
   } else {
     try {
-      params.max_id = oldestId.toString();
+      params.max_id = oldestIdStr;
       return await getAllFavoritesSub(favorites.concat(fav), params);
     } catch (error) {
       // Twitter API制限：75 calls per 15 minutes (ver 1.1)
@@ -71,10 +77,10 @@ exports.getAllFavorites = async () => {
 
 getAllFollowingSub = async (users, params) => {
   const res = await exports.getFollowing(params);
-  const resUsers = res.users;
-  const nextCursor = BigInt(res.next_cursor_str);
-  const previousCursor = BigInt(res.previous_cursor_str);
-  if (nextCursor === 0n) {
+  const resUsers = util.compressMultiUserObj(res.users);
+  const nextCursor = bigInt(res.next_cursor_str);
+  const previousCursor = bigInt(res.previous_cursor_str);
+  if (nextCursor.compare(bigInt(0)) === 0) {
     return users.concat(resUsers);
   } else {
     try {

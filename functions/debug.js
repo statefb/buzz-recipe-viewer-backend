@@ -1,19 +1,22 @@
 const api = require('./api')
+const index = require('./index')
 
-api.getAllFollowing()
-  .then(res => {
-    console.log(res.length);
-    return res.length;
-  })
-  .catch(err => {
-    console.log(err)
-  })
-
-// api.getAllFavorites()
+// api.getAllFollowing()
 //   .then(res => {
-//     console.log(res);
-//     return res
+//     console.log(res.length);
+//     return res.length;
 //   })
 //   .catch(err => {
-//     console.log(err);
+//     console.log(err)
 //   })
+
+api.getAllFavorites()
+  .then(res => {
+    console.log(res);
+    return res
+  })
+  .catch(err => {
+    console.log(err);
+  })
+
+// index.addAllUsers()

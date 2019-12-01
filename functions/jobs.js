@@ -1,3 +1,4 @@
+const bigInt= require("big-integer")
 const api = require('./api')
 const db = require('./db')
 const util = require('./util')
@@ -29,10 +30,11 @@ exports.update = async () => {
   // replace all tweets on db newer than oldest all favorites.
   const dbFavorites = db.getFavorites()
   // get older favorites saved in DB than oldest favorites fetched from twitter.
-  const oldestFavId = util.getOldestTweetId(filteredAllFavorites);
+  const oldestFavIdStr = util.getOldestTweetIdStr(filteredAllFavorites);
   const oldDbFavorites = [];
   dbFavorites.forEach(dbFav => {
-    if (dbFav.id < oldestFavId) {
+    // CAUTION: compare test
+    if (bigInt(oldestFavIdStr).compare(dbFav.id) === 0) {
       oldDbFavorites.push(dbFav);
     }
   });
