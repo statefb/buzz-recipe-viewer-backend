@@ -38,3 +38,12 @@ exports.updateAll = async (favorites) => {
   });
   await Promise.all(promises);
 }
+
+exports.updateUsers = async (users) => {
+  const followingRef = db.collection('followings');
+  const promises = [];
+  users.forEach(user => {
+    promises.push(followingRef.doc(user.id_str).set(user));
+  });
+  await Promise.all(promises);
+}

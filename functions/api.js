@@ -4,16 +4,16 @@ const Twitter = require('twitter');
 const token = require('./twitter_token');
 const client = new Twitter(token.token);
 
-exports.getFollowing = ({count=200, since_id=undefined, max_id=undefined}={}) => {
+exports.getFollowing = ({count=10, cursor=-1}={}) => {
   /**
    * フォローしているユーザー一覧を取得する
    * @param {number} count 取得する件数
    */
   return new Promise((resolve, reject) => {
-    const params = {count: count, since_id: since_id, max_id: max_id};
+    const params = {count: count, cursor: cursor};
     client.get('friends/list', params, (error, data, response) => {
       if (!error) {
-        resolve(data.users)
+        resolve(data)
       } else {
         reject(error)
       }
@@ -21,13 +21,14 @@ exports.getFollowing = ({count=200, since_id=undefined, max_id=undefined}={}) =>
   })
 }
 
-exports.getFavorites = ({count=10, since_id=undefined, max_id=undefined}={}) => {
+exports.getFavorites = ({count=10, since_id=undefined, max_id=undefined, include_entities=true}={}) => {
   /**
    * いいね一覧を取得する
    * @param {number} count 取得する件数 
    */
   return new Promise((resolve, reject) => {
-    const params = {count: count, since_id: since_id, max_id: max_id}
+    const params = {count: count, since_id: since_id, max_id: max_id, include_entities: include_entities}
+    params.tweet_mode = "extended";
     client.get('favorites/list', params, (error, data, response) => {
       if (!error) {
         resolve(data)
@@ -64,13 +65,37 @@ exports.getAllFavorites = async () => {
   /**
    * Twitter APIで取得可能なすべてのいいねを取得する
    */
-  const params = {count: 200}
+  const params = {count: 200, include_entities: true};
   return await getAllFavoritesSub([], params)
+}
+
+getAllFollowingSub = async (users, params) => {
+  const res = await exports.getFollowing(params);
+  const resUsers = res.users;
+  const nextCursor = BigInt(res.next_cursor_str);
+  const previousCursor = BigInt(res.previous_cursor_str);
+  if (previousCursor === 0n & nextCursor === 0n) {
+    return users.concat(resUsers);
+  } else {
+    try {
+      params.cursor = nextCursor;
+      return await getAllFollowingSub(users.concat(resUsers), params)
+    } catch (error) {
+      console.log('failed to fetch all following users. your account may have too many favorites.')
+      throw error
+    }
+  }
+}
+
+exports.getAllFollowing = async () => {
+  const params = {count: 15, cursor: -1};
+  return await getAllFollowingSub([], params)
 }
 
 exports.getFavoritesFilteredByUserIds = async (userIds) => {
   /**
    * いいねの中から、指定されたユーザーIDのtweetのみを取得する
+   * TODO: 削除予定
    */
   const favorites = await exports.getFavorites(count=100)
   const filteredFavorites = [];

@@ -1,4 +1,5 @@
-functions/twitter_token.json
+functions/deebug.js
+functions/twitter_token.js
 
 # Logs
 logs
