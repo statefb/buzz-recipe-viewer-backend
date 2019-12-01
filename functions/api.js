@@ -45,11 +45,11 @@ getAllFavoritesSub = async (favorites, params) => {
    */
   const fav = await exports.getFavorites(params);
   const oldestId = util.getOldestTweetId(fav);
-  if (fav.length === 0 | oldestId === params.max_id) {
+  if (fav.length === 0 | oldestId == params.max_id) {
     return favorites
   } else {
     try {
-      params.max_id = oldestId;
+      params.max_id = oldestId.toString();
       return await getAllFavoritesSub(favorites.concat(fav), params);
     } catch (error) {
       // Twitter API制限：75 calls per 15 minutes (ver 1.1)
@@ -74,11 +74,11 @@ getAllFollowingSub = async (users, params) => {
   const resUsers = res.users;
   const nextCursor = BigInt(res.next_cursor_str);
   const previousCursor = BigInt(res.previous_cursor_str);
-  if (previousCursor === 0n & nextCursor === 0n) {
+  if (nextCursor === 0n) {
     return users.concat(resUsers);
   } else {
     try {
-      params.cursor = nextCursor;
+      params.cursor = nextCursor.toString();
       return await getAllFollowingSub(users.concat(resUsers), params)
     } catch (error) {
       console.log('failed to fetch all following users. your account may have too many favorites.')
@@ -88,7 +88,7 @@ getAllFollowingSub = async (users, params) => {
 }
 
 exports.getAllFollowing = async () => {
-  const params = {count: 15, cursor: -1};
+  const params = {count: 200, cursor: -1};
   return await getAllFollowingSub([], params)
 }
 
