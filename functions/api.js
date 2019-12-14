@@ -5,13 +5,13 @@ const Twitter = require('twitter');
 const token = require('./twitter_token');
 const client = new Twitter(token.token);
 
-exports.getFollowing = ({count=10, cursor=-1}={}) => {
+exports.getFollowings = ({screen_name, count=10, cursor=-1}={}) => {
   /**
    * フォローしているユーザー一覧を取得する
    * @param {number} count 取得する件数
    */
   return new Promise((resolve, reject) => {
-    const params = {count: count, cursor: cursor};
+    const params = {screen_name: screen_name, count: count, cursor: cursor};
     client.get('friends/list', params, (error, data, response) => {
       if (!error) {
         resolve(data)
@@ -22,13 +22,13 @@ exports.getFollowing = ({count=10, cursor=-1}={}) => {
   })
 }
 
-exports.getFavorites = ({count=10, since_id=undefined, max_id=undefined, include_entities=true}={}) => {
+exports.getFavorites = ({screen_name, count=10, since_id=undefined, max_id=undefined, include_entities=true}={}) => {
   /**
    * いいね一覧を取得する
    * @param {number} count 取得する件数 
    */
   return new Promise((resolve, reject) => {
-    const params = {count: count, since_id: since_id, max_id: max_id, include_entities: include_entities}
+    const params = {screen_name: screen_name, count: count, since_id: since_id, max_id: max_id, include_entities: include_entities}
     params.tweet_mode = "extended";
     client.get('favorites/list', params, (error, data, response) => {
       if (!error) {
@@ -67,16 +67,16 @@ getAllFavoritesSub = async (favorites, params) => {
   }
 }
 
-exports.getAllFavorites = async () => {
+exports.getAllFavorites = async (screen_name) => {
   /**
    * Twitter APIで取得可能なすべてのいいねを取得する
    */
-  const params = {count: 200, include_entities: true};
+  const params = {screen_name: screen_name, count: 200, include_entities: true};
   return await getAllFavoritesSub([], params)
 }
 
-getAllFollowingSub = async (users, params) => {
-  const res = await exports.getFollowing(params);
+getAllFollowingsSub = async (users, params) => {
+  const res = await exports.getFollowings(params);
   const resUsers = util.compressMultiUserObj(res.users);
   const nextCursor = bigInt(res.next_cursor_str);
   const previousCursor = bigInt(res.previous_cursor_str);
@@ -85,7 +85,7 @@ getAllFollowingSub = async (users, params) => {
   } else {
     try {
       params.cursor = nextCursor.toString();
-      return await getAllFollowingSub(users.concat(resUsers), params)
+      return await getAllFollowingsSub(users.concat(resUsers), params)
     } catch (error) {
       console.log('failed to fetch all following users. your account may have too many favorites.')
       throw error
@@ -93,9 +93,9 @@ getAllFollowingSub = async (users, params) => {
   }
 }
 
-exports.getAllFollowing = async () => {
-  const params = {count: 200, cursor: -1};
-  return await getAllFollowingSub([], params)
+exports.getAllFollowings = async (screen_name) => {
+  const params = {screen_name: screen_name, count: 200, cursor: -1};
+  return await getAllFollowingsSub([], params)
 }
 
 exports.getFavoritesFilteredByUserIds = async (userIds) => {

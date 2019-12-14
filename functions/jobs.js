@@ -3,6 +3,60 @@ const api = require('./api')
 const db = require('./db')
 const util = require('./util')
 
+exports.setFollowings = async (screen_name) => {
+  // get followings from db
+  // const dbPromise = db.getFollowings(screen_name);
+  // const twPromise = api.getAllFollowings(screen_name);
+  let dbFollowings, twFollowings;
+  // try {
+  //   [dbFollowings, twFollowings] = await Promise
+  //     .all([dbPromise, twPromise]);
+  // } catch (error) {
+  //   console.log("failed to fetch followings.")
+  //   await db.createLog(screen_name, "followings", error);
+  //   return
+  // }
+
+  // DUMMY
+  dbFollowings = [
+    {id_str: "0", text: "a"}, {id_str: "1", text: "b"}
+  ]
+  twFollowings = [
+    {id_str: "1", text: "b"}, {id_str: "2", text: "c"}, 
+  ]
+
+  // remove followings which exists only db
+  const deledFollowings = dbFollowings.filter(user => {
+    const twFollowingsIds = twFollowings.map(user => user.id_str);
+    return !twFollowingsIds.includes(user.id_str)
+  });
+  const delPromise = db.deleteFollowings(screen_name, deledFollowings);
+
+  // add new followings with subscribe status
+  const addedFollowings = [];
+  twFollowings.filter(user => {
+    const dbFollowingsIds = dbFollowings.map(user => user.id_str);
+    return !dbFollowingsIds.includes(user.id_str)
+  }).forEach(user => {
+    user.subscribe = false;  // default: false
+    addedFollowings.push(user);
+  });
+  const addPromise = db.addFollowings(screen_name, addedFollowings);
+
+  let err = ""
+  try {
+    await Promise.all([delPromise, addPromise]);
+  } catch (error) {
+    console.log("failed to DB operation.")
+    console.log(error)
+    err = error;
+  } finally {
+    await db.createLog(screen_name, "followings", err);
+  }
+}
+
+/**************************/
+
 exports.update = async () => {
   /**
    * cron task (1 per 1 day)
@@ -43,12 +97,5 @@ exports.update = async () => {
   // save to RealtimeDatabase
   // db.updateAll(favorites);
   return favorites;
-}
-
-exports.addFavorites = () => {
-  /**
-   * cron task (1 per 1 hour)
-   */
-
 }
 

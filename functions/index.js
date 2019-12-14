@@ -31,7 +31,7 @@ exports.addAllUsers = functions.https.onRequest(async (req, res) => {
    * テスト用
    */
   try {
-    const followings = await api.getAllFollowing();
+    const followings = await api.getAllFollowings();
     await db.updateFollowings(followings);
   } catch (error) {
     console.log(error);

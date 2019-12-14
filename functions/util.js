@@ -54,3 +54,19 @@ exports.compressMultiUserObj = (users) => {
   });
   return compUsers;
 }
+
+exports.getNowDateStr = () => {
+  const today = new Date();
+  const date = today.getFullYear()
+    + '-' + format((today.getMonth() + 1))
+    + '-' + format(today.getDate());
+  const time = format(today.getHours())
+    + ":" + format(today.getMinutes())
+    + ":" + format(today.getSeconds());
+  const dateTime = date + ' ' + time;
+  return dateTime;
+}
+
+function format(num){
+  return ("0" + num).slice(-2);
+}
