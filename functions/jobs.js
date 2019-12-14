@@ -3,10 +3,10 @@ const api = require('./api')
 const db = require('./db')
 const util = require('./util')
 
-exports.setFollowings = async (screen_name) => {
+exports.setFollowings = async (user_id) => {
   // get followings from db
-  const dbPromise = db.getFollowings(screen_name);
-  const twPromise = api.getAllFollowings(screen_name);
+  const dbPromise = db.getFollowings(user_id);
+  const twPromise = api.getAllFollowings(user_id);
   let dbFollowings, twFollowings;
   try {
     [dbFollowings, twFollowings] = await Promise
@@ -14,7 +14,7 @@ exports.setFollowings = async (screen_name) => {
   } catch (error) {
     console.log("failed to fetch followings.")
     console.log(error)
-    await db.createLog(screen_name, "followings", error);
+    await db.createLog(user_id, "followings", error);
     return
   }
 
@@ -23,7 +23,7 @@ exports.setFollowings = async (screen_name) => {
     const twFollowingsIds = twFollowings.map(user => user.id_str);
     return !twFollowingsIds.includes(user.id_str)
   });
-  const delPromise = db.deleteFollowings(screen_name, deledFollowings);
+  const delPromise = db.deleteFollowings(user_id, deledFollowings);
 
   // add new followings with subscribe status
   const addedFollowings = [];
@@ -34,7 +34,7 @@ exports.setFollowings = async (screen_name) => {
     user.subscribe = false;  // default: false
     addedFollowings.push(user);
   });
-  const addPromise = db.addFollowings(screen_name, addedFollowings);
+  const addPromise = db.addFollowings(user_id, addedFollowings);
 
   let err = ""
   try {
@@ -44,14 +44,14 @@ exports.setFollowings = async (screen_name) => {
     console.log(error)
     err = error;
   } finally {
-    await db.createLog(screen_name, "followings", err);
+    await db.createLog(user_id, "followings", err);
   }
 }
 
-exports.setFavorites = async (screen_name) => {
+exports.setFavorites = async (user_id) => {
   // fetch data
-  const dbPromise = db.getFavorites(screen_name);
-  const twPromise = api.getAllFavorites(screen_name);
+  const dbPromise = db.getFavorites(user_id);
+  const twPromise = api.getAllFavorites(user_id);
   let dbFavorites, twFavorites;
   try {
     [dbFavorites, twFavorites] = await Promise
@@ -59,7 +59,7 @@ exports.setFavorites = async (screen_name) => {
   } catch (error) {
     console.log("failed to fetch favorites.")
     console.log(error)
-    await db.createLog(screen_name, "followings", error);
+    await db.createLog(user_id, "followings", error);
     return
   }
 
@@ -75,7 +75,7 @@ exports.setFavorites = async (screen_name) => {
     tweet.hide = false;  // default: false
     addedFavorites.push(tweet)
   });
-  const addPromise = db.addFavorites(screen_name, addedFavorites);
+  const addPromise = db.addFavorites(user_id, addedFavorites);
 
   // remove favorites which exists only db
   // and newer than oldest favorites from twitter
@@ -85,7 +85,7 @@ exports.setFavorites = async (screen_name) => {
     const isNewer = binInt(tweet.id_str).compare(oldestTweetId) === 1;
     return !twFavoritesIds.includes(tweet.id_str) & isNewer
   })
-  const delPromise = db.deleteFavorites(screen_name, deledFavorites);
+  const delPromise = db.deleteFavorites(user_id, deledFavorites);
 
   let err = ""
   try {
@@ -95,7 +95,7 @@ exports.setFavorites = async (screen_name) => {
     console.log(error);
     err = error;
   } finally {
-    await db.createLog(screen_name, "favorites", err);
+    await db.createLog(user_id, "favorites", err);
   }
 }
 

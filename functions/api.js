@@ -5,13 +5,13 @@ const Twitter = require('twitter');
 const token = require('./twitter_token');
 const client = new Twitter(token.token);
 
-exports.getFollowings = ({screen_name, count=10, cursor=-1}={}) => {
+exports.getFollowings = ({user_id, count=10, cursor=-1}={}) => {
   /**
    * フォローしているユーザー一覧を取得する
    * @param {number} count 取得する件数
    */
   return new Promise((resolve, reject) => {
-    const params = {screen_name: screen_name, count: count, cursor: cursor};
+    const params = {user_id: user_id, count: count, cursor: cursor};
     client.get('friends/list', params, (error, data, response) => {
       if (!error) {
         resolve(data)
@@ -22,13 +22,13 @@ exports.getFollowings = ({screen_name, count=10, cursor=-1}={}) => {
   })
 }
 
-exports.getFavorites = ({screen_name, count=10, since_id=undefined, max_id=undefined, include_entities=true}={}) => {
+exports.getFavorites = ({user_id, count=10, since_id=undefined, max_id=undefined, include_entities=true}={}) => {
   /**
    * いいね一覧を取得する
    * @param {number} count 取得する件数 
    */
   return new Promise((resolve, reject) => {
-    const params = {screen_name: screen_name, count: count, since_id: since_id, max_id: max_id, include_entities: include_entities}
+    const params = {user_id: user_id, count: count, since_id: since_id, max_id: max_id, include_entities: include_entities}
     params.tweet_mode = "extended";
     client.get('favorites/list', params, (error, data, response) => {
       if (!error) {
@@ -67,11 +67,11 @@ getAllFavoritesSub = async (favorites, params) => {
   }
 }
 
-exports.getAllFavorites = async (screen_name) => {
+exports.getAllFavorites = async (user_id) => {
   /**
    * Twitter APIで取得可能なすべてのいいねを取得する
    */
-  const params = {screen_name: screen_name, count: 200, include_entities: true};
+  const params = {user_id: user_id, count: 200, include_entities: true};
   return await getAllFavoritesSub([], params)
 }
 
@@ -93,8 +93,8 @@ getAllFollowingsSub = async (users, params) => {
   }
 }
 
-exports.getAllFollowings = async (screen_name) => {
-  const params = {screen_name: screen_name, count: 200, cursor: -1};
+exports.getAllFollowings = async (user_id) => {
+  const params = {user_id: user_id, count: 200, cursor: -1};
   return await getAllFollowingsSub([], params)
 }
 

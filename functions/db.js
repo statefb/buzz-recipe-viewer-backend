@@ -12,9 +12,9 @@ var defaultApp = admin.initializeApp({
 
 let db = admin.firestore();
 
-exports.getFollowings = async (screen_name) => {
+exports.getFollowings = async (user_id) => {
   const folRef = db.collection("users")
-    .doc(screen_name).collection("followings");
+    .doc(user_id).collection("followings");
   const followings = []
   const querySnapshot = await folRef.get();
   querySnapshot.forEach(doc => {
@@ -23,9 +23,9 @@ exports.getFollowings = async (screen_name) => {
   return followings;
 }
 
-exports.getFavorites = async (screen_name) => {
+exports.getFavorites = async (user_id) => {
   const favRef = db.collection("users")
-    .doc(screen_name).collection("favorites");
+    .doc(user_id).collection("favorites");
   const favorites = [];
   const snapshot = await favRef.get();
   snapshot.forEach(doc => {
@@ -34,26 +34,26 @@ exports.getFavorites = async (screen_name) => {
   return favorites;
 }
 
-exports.deleteFollowings = async (screen_name, followings) => {
-  await delOrAddObjects(screen_name, followings, "delete", "followings");
+exports.deleteFollowings = async (user_id, followings) => {
+  await delOrAddObjects(user_id, followings, "delete", "followings");
 }
 
-exports.addFollowings = async (screen_name, followings) => {
-  await delOrAddObjects(screen_name, followings, "add", "followings")
+exports.addFollowings = async (user_id, followings) => {
+  await delOrAddObjects(user_id, followings, "add", "followings")
 }
 
-exports.deleteFavorites = async (screen_name, favorites) => {
-  await delOrAddObjects(screen_name, favorites, "delete", "favorites");
+exports.deleteFavorites = async (user_id, favorites) => {
+  await delOrAddObjects(user_id, favorites, "delete", "favorites");
 }
 
-exports.addFavorites = async (screen_name, favorites) => {
-  await delOrAddObjects(screen_name, favorites, "add", "favorites");
+exports.addFavorites = async (user_id, favorites) => {
+  await delOrAddObjects(user_id, favorites, "add", "favorites");
 }
 
-delOrAddObjects = async (screen_name, objects, operation, collectionName) => {
+delOrAddObjects = async (user_id, objects, operation, collectionName) => {
   const batchSize = 50;
   const ref = db.collection("users")
-    .doc(screen_name).collection(collectionName);
+    .doc(user_id).collection(collectionName);
 
   if (operation === "delete") {
     await delOrAddSub(ref, objects, batchSize, 0, "delete");
@@ -86,7 +86,7 @@ delOrAddSub = async (
   delOrAddSub(ref, objects, batchSize, endIndex, operation);
 }
 
-exports.createLog = async (screen_name, collection_name, error) => {
+exports.createLog = async (user_id, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
   const dateTime = util.getNowDateStr();
@@ -95,7 +95,7 @@ exports.createLog = async (screen_name, collection_name, error) => {
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       success: success,
       error: error,
-      twitter_screen_name: screen_name,
+      twitter_user_id: user_id,
       collection_name: collection_name
     });  
   } catch (err) {

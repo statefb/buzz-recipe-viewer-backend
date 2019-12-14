@@ -22,5 +22,5 @@ const jobs = require("./jobs")
 
 // index.addAllUsers()
 
-// jobs.setFollowings("64chords");
-jobs.setFavorites("64chords");
+jobs.setFollowings("1308112076");
+// jobs.setFavorites("1308112076");
