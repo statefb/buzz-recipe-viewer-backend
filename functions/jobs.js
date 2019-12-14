@@ -5,25 +5,18 @@ const util = require('./util')
 
 exports.setFollowings = async (screen_name) => {
   // get followings from db
-  // const dbPromise = db.getFollowings(screen_name);
-  // const twPromise = api.getAllFollowings(screen_name);
+  const dbPromise = db.getFollowings(screen_name);
+  const twPromise = api.getAllFollowings(screen_name);
   let dbFollowings, twFollowings;
-  // try {
-  //   [dbFollowings, twFollowings] = await Promise
-  //     .all([dbPromise, twPromise]);
-  // } catch (error) {
-  //   console.log("failed to fetch followings.")
-  //   await db.createLog(screen_name, "followings", error);
-  //   return
-  // }
-
-  // DUMMY
-  dbFollowings = [
-    {id_str: "0", text: "a"}, {id_str: "1", text: "b"}
-  ]
-  twFollowings = [
-    {id_str: "1", text: "b"}, {id_str: "2", text: "c"}, 
-  ]
+  try {
+    [dbFollowings, twFollowings] = await Promise
+      .all([dbPromise, twPromise]);
+  } catch (error) {
+    console.log("failed to fetch followings.")
+    console.log(error)
+    await db.createLog(screen_name, "followings", error);
+    return
+  }
 
   // remove followings which exists only db
   const deledFollowings = dbFollowings.filter(user => {

@@ -20,6 +20,7 @@ exports.getFollowings = async (screen_name) => {
   querySnapshot.forEach(doc => {
     followings.push(doc.data());
   });
+  return followings;
 }
 
 exports.deleteFollowings = async (screen_name, followings) => {
@@ -68,13 +69,18 @@ exports.createLog = async (screen_name, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
   const dateTime = util.getNowDateStr();
-  await logRef.doc(dateTime).set({
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    success: success,
-    error: error,
-    twitter_screen_name: screen_name,
-    collection_name: collection_name
-  })
+  try {
+    await logRef.doc(dateTime).set({
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      success: success,
+      error: error,
+      twitter_screen_name: screen_name,
+      collection_name: collection_name
+    });  
+  } catch (err) {
+    console.log("failed to set log.")
+    console.log(err);
+  }
 }
 
 /**************************/
