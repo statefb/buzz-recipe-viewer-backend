@@ -23,46 +23,67 @@ exports.getFollowings = async (screen_name) => {
   return followings;
 }
 
+exports.getFavorites = async (screen_name) => {
+  const favRef = db.collection("users")
+    .doc(screen_name).collection("favorites");
+  const favorites = [];
+  const snapshot = await favRef.get();
+  snapshot.forEach(doc => {
+    favorites.push(doc.data());
+  });
+  return favorites;
+}
+
 exports.deleteFollowings = async (screen_name, followings) => {
-  await delOrAddFollowings(screen_name, followings, "delete");
+  await delOrAddObjects(screen_name, followings, "delete", "followings");
 }
 
 exports.addFollowings = async (screen_name, followings) => {
-  await delOrAddFollowings(screen_name, followings, "add")
+  await delOrAddObjects(screen_name, followings, "add", "followings")
 }
 
-delOrAddFollowings = async (screen_name, followings, operation) => {
-  const folRef = db.collection("users")
-    .doc(screen_name).collection("followings");
+exports.deleteFavorites = async (screen_name, favorites) => {
+  await delOrAddObjects(screen_name, favorites, "delete", "favorites");
+}
+
+exports.addFavorites = async (screen_name, favorites) => {
+  await delOrAddObjects(screen_name, favorites, "add", "favorites");
+}
+
+delOrAddObjects = async (screen_name, objects, operation, collectionName) => {
+  const batchSize = 50;
+  const ref = db.collection("users")
+    .doc(screen_name).collection(collectionName);
 
   if (operation === "delete") {
-    await delOrAddFollowingsSub(folRef, followings, 50, 0, "delete");
+    await delOrAddSub(ref, objects, batchSize, 0, "delete");
   } else if (operation === "add") {
-    await delOrAddFollowingsSub(folRef, followings, 50, 0, "add");
+    await delOrAddSub(ref, objects, batchSize, 0, "add");
   } else {
     throw new Error("operation must be either `delete` or `add`.");
   }
 }
 
-delOrAddFollowingsSub = async (
-  folRef, followings, batchSize, startIndex, operation) => 
+delOrAddSub = async (
+  ref, objects, batchSize, startIndex, operation) => 
 {
   const batch = db.batch();
   const endIndex = startIndex + batchSize;
-  const folSub = followings.slice(startIndex, endIndex);
-  if (folSub.length === 0) {
+  const objectsSub = objects.slice(startIndex, endIndex);
+  if (objectsSub.length === 0) {
     return
   }
-  folSub.forEach(user => {
-    const userRef = folRef.doc(user.id_str);
+  objectsSub.forEach(obj => {
+    const objRef = ref.doc(obj.id_str);
     if (operation === "delete") {
-      batch.delete(userRef);
+      batch.delete(objRef);
     } else {
-      batch.set(userRef, user);
+      obj.createdAt = admin.firestore.FieldValue.serverTimestamp();
+      batch.set(objRef, obj);
     }
   });
   await batch.commit();
-  delOrAddFollowingsSub(folRef, followings, batchSize, endIndex, operation);
+  delOrAddSub(ref, objects, batchSize, endIndex, operation);
 }
 
 exports.createLog = async (screen_name, collection_name, error) => {

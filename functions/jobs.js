@@ -48,6 +48,57 @@ exports.setFollowings = async (screen_name) => {
   }
 }
 
+exports.setFavorites = async (screen_name) => {
+  // fetch data
+  const dbPromise = db.getFavorites(screen_name);
+  const twPromise = api.getAllFavorites(screen_name);
+  let dbFavorites, twFavorites;
+  try {
+    [dbFavorites, twFavorites] = await Promise
+      .all([dbPromise, twPromise]);
+  } catch (error) {
+    console.log("failed to fetch favorites.")
+    console.log(error)
+    await db.createLog(screen_name, "followings", error);
+    return
+  }
+
+  // add new favorites filtered by `subscribe` with default status
+  // TODO: filter func by subscribe
+  const addedFavorites = [];
+  twFavorites.filter(tweet => {
+    const dbFavoritesIds = dbFavorites.map(tweet => tweet.id_str);
+    return !dbFavoritesIds.includes(tweet.id_str);
+  }).forEach(tweet => {
+    tweet.tag = [];  // default: empty
+    tweet.rate = 0;  // default: 0
+    tweet.hide = false;  // default: false
+    addedFavorites.push(tweet)
+  });
+  const addPromise = db.addFavorites(screen_name, addedFavorites);
+
+  // remove favorites which exists only db
+  // and newer than oldest favorites from twitter
+  const deledFavorites = dbFavorites.filter(tweet => {
+    const twFavoritesIds = twFavorites.map(tweet => tweet.id_str);
+    const oldestTweetId = bigInt(util.oldestTweetIdStr(twFavorites));
+    const isNewer = binInt(tweet.id_str).compare(oldestTweetId) === 1;
+    return !twFavoritesIds.includes(tweet.id_str) & isNewer
+  })
+  const delPromise = db.deleteFavorites(screen_name, deledFavorites);
+
+  let err = ""
+  try {
+    await Promise.all([delPromise, addPromise]);
+  } catch (error) {
+    console.log("failed to DB operation.");
+    console.log(error);
+    err = error;
+  } finally {
+    await db.createLog(screen_name, "favorites", err);
+  }
+}
+
 /**************************/
 
 exports.update = async () => {
