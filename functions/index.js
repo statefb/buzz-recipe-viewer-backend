@@ -10,11 +10,15 @@ const admin = require('firebase-admin');
 const api = require('./api')
 const db = require('./db')
 
-exports.setFollowings = functions.https.onRequest(async (req, res) => {
-  const user_id = req.query.user_id
-  await jobs.setFollowings(user_id);
-  res.end("successfully added followings.")
+exports.setFollowings = functions.https.onCall(async (data, context) => {
+  await jobs.setFollowings(data.user_id);
 })
+
+// exports.setFollowings = functions.https.onRequest(async (req, res) => {
+//   const user_id = req.query.user_id
+//   await jobs.setFollowings(user_id);
+//   res.end("successfully added followings.")
+// })
 
 /************************************/
 
