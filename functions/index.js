@@ -14,6 +14,14 @@ exports.setFollowings = functions.https.onCall(async (data, context) => {
   await jobs.setFollowings(data.user_id);
 })
 
+exports.subscribe = functions.https.onCall(async (data, context) => {
+  await db.changeSubscribeStatus(data.user_id, data.twitter_user_id, true);
+})
+
+exports.unsubscribe = functions.https.onCall(async (data, context) => {
+  await db.changeSubscribeStatus(data.user_id, data.twitter_user_id, false);
+})
+
 // exports.setFollowings = functions.https.onRequest(async (req, res) => {
 //   const user_id = req.query.user_id
 //   await jobs.setFollowings(user_id);

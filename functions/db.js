@@ -104,6 +104,25 @@ exports.createLog = async (user_id, collection_name, error) => {
   }
 }
 
+exports.changeSubscribeStatus = async (user_id, twitter_user_id, toSubscribe) => {
+  /**
+   * @param {number} user_id TweetRecipeのユーザーID
+   * @param {number} twitter_user_id 購読対象のtwitterユーザーID
+   * @param {bool} toSubscribe 購読する場合はtrue, 解除の場合はfalse
+   */
+  const folRef = db.collection("users")
+    .doc(user_id).collection("followings");
+  try {
+    await folRef.doc(twitter_user_id).update({
+      subscribe: toSubscribe
+    })
+  } catch (error) {
+    console.log("failed to update subscribe status.")
+    console.log(error)
+    await db.createLog(user_id, "followings", error);
+  }
+}
+
 /**************************/
 
 exports.getCookDevInds = () => {
