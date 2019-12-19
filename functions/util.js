@@ -1,11 +1,15 @@
 const bigInt = require("big-integer");
 
 exports.getOldestTweetIdStr = (tweets) => {
+  /**
+   * Get oldest Tweet ID as string.
+   * @param {Array} tweets array of tweet obj.
+   * @return {string} oldest id.
+   */
   const ids = [];
   tweets.forEach(tweet => {
     ids.push(bigInt(tweet.id_str));
   })
-  // return Math.min.apply(null, ids)
   return exports.getMin(ids).toString();
 }
 

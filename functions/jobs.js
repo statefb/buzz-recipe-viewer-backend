@@ -50,12 +50,13 @@ exports.setFollowings = async (user_id) => {
 
 exports.setFavorites = async (user_id) => {
   // fetch data
-  const dbPromise = db.getFavorites(user_id);
+  const dbFavPromise = db.getFavorites(user_id);
+  const dbFloPromise = db.getFollowings(user_id);
   const twPromise = api.getAllFavorites(user_id);
-  let dbFavorites, twFavorites;
+  let dbFavorites, twFavorites, dbFollowings;
   try {
-    [dbFavorites, twFavorites] = await Promise
-      .all([dbPromise, twPromise]);
+    [dbFavorites, twFavorites, dbFollowings] = await Promise
+      .all([dbFavPromise, twPromise, dbFloPromise]);
   } catch (error) {
     console.log("failed to fetch favorites.")
     console.log(error)
@@ -63,12 +64,19 @@ exports.setFavorites = async (user_id) => {
     return
   }
 
+  // get subscribing user id_str
+  const subscribingUserIds = dbFollowings
+    .filter(user => user.subscribe)
+    .map(user => user.id_str);
+
   // add new favorites filtered by `subscribe` with default status
-  // TODO: filter func by subscribe
   const addedFavorites = [];
   twFavorites.filter(tweet => {
     const dbFavoritesIds = dbFavorites.map(tweet => tweet.id_str);
     return !dbFavoritesIds.includes(tweet.id_str);
+  }).filter(tweet => {
+    // filter by subscribing
+    return subscribingUserIds.includes(tweet.user.id_str);
   }).forEach(tweet => {
     tweet.tag = [];  // default: empty
     tweet.rate = 0;  // default: 0
@@ -81,9 +89,12 @@ exports.setFavorites = async (user_id) => {
   // and newer than oldest favorites from twitter
   const deledFavorites = dbFavorites.filter(tweet => {
     const twFavoritesIds = twFavorites.map(tweet => tweet.id_str);
-    const oldestTweetId = bigInt(util.oldestTweetIdStr(twFavorites));
-    const isNewer = binInt(tweet.id_str).compare(oldestTweetId) === 1;
-    return !twFavoritesIds.includes(tweet.id_str) & isNewer
+    const oldestTweetId = bigInt(util.getOldestTweetIdStr(twFavorites));
+    const isNewer = bigInt(tweet.id_str).compare(oldestTweetId) === 1;
+    return isNewer
+  }).filter(tweet => {
+    // filter by not subscribing
+    return !subscribingUserIds.includes(tweet.user.id_str);
   })
   const delPromise = db.deleteFavorites(user_id, deledFavorites);
 
