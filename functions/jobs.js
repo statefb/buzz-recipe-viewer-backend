@@ -78,7 +78,7 @@ exports.setFavorites = async (user_id) => {
     // filter by subscribing
     return subscribingUserIds.includes(tweet.user.id_str);
   }).forEach(tweet => {
-    tweet.tag = [];  // default: empty
+    tweet.tags = [];  // default: empty
     tweet.rate = 0;  // default: 0
     tweet.hide = false;  // default: false
     addedFavorites.push(tweet)
@@ -108,49 +108,5 @@ exports.setFavorites = async (user_id) => {
   } finally {
     await db.createLog(user_id, "favorites", err);
   }
-}
-
-/**************************/
-
-exports.update = async () => {
-  /**
-   * cron task (1 per 1 day)
-   * NOTE: お気に入りのリストを返すのではなく、DBに反映をcron taskでやりたい
-   * TODO: 
-   *  - フィルタリングを、DB結合後に実施する
-   *  - 全フォローユーザーの更新
-   */
-  // fetch all favorites using Twitter api.
-  let allFavorites;
-  try {
-    allFavorites = await api.getAllFavorites();
-  } catch (error) {
-    // console.log('failed to fetch all favorites.');
-    throw error
-  }
-  // filter by cooking developer account ids.
-  const cookDevInds = db.getCookDevInds();
-  const filteredAllFavorites = [];
-  allFavorites.forEach(fav => {
-    if (cookDevInds.includes(fav.user.id)) {
-      filteredAllFavorites.push(fav)
-    }
-  });
-  // replace all tweets on db newer than oldest all favorites.
-  const dbFavorites = db.getFavorites()
-  // get older favorites saved in DB than oldest favorites fetched from twitter.
-  const oldestFavIdStr = util.getOldestTweetIdStr(filteredAllFavorites);
-  const oldDbFavorites = [];
-  dbFavorites.forEach(dbFav => {
-    // CAUTION: compare test
-    if (bigInt(oldestFavIdStr).compare(dbFav.id) === 0) {
-      oldDbFavorites.push(dbFav);
-    }
-  });
-  
-  const favorites = filteredAllFavorites.concat(oldDbFavorites);
-  // save to RealtimeDatabase
-  // db.updateAll(favorites);
-  return favorites;
 }
 

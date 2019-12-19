@@ -25,3 +25,11 @@ exports.unsubscribe = functions.https.onCall(async (data, context) => {
 exports.setFavorites = functions.https.onCall(async (data, context) => {
   await jobs.setFavorites(data.user_id);
 })
+
+exports.addTag = functions.https.onCall(async (data, context) => {
+  await db.addTag(data.user_id, data.tweet_id, data.text)
+})
+
+exports.deleteTag = functions.https.onCall(async (data, context) => {
+  await db.deleteTag(data.user_id, data.tweet_id, data.text)
+})

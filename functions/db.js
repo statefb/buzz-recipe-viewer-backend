@@ -123,3 +123,27 @@ exports.changeSubscribeStatus = async (user_id, twitter_user_id, toSubscribe) =>
   }
 }
 
+exports.addTag = async (user_id, tweet_id, text) => {
+  const twRef = db.collection("users")
+    .doc(user_id).collection("favorites").doc(tweet_id);
+  const doc = await twRef.get();
+  const tag = doc.data().tag;
+  if (tag.includes(text))
+    return  // ignore duplicated
+  tag.push(text);
+  await twRef.update({tag: tag});
+}
+
+exports.deleteTag = async (user_id, tweet_id, text) => {
+  const twRef = db.collection("users")
+    .doc(user_id).collection("favorites").doc(tweet_id);
+  const doc = await twRef.get();
+  const tag = doc.data().tag;
+  const idx = tag.findIndex(t => t === text);
+  if (idx === 0) {
+    tag.shift()
+  } else {
+    tag.splice(idx, idx);
+  }
+  await twRef.update({tag: tag});
+}
