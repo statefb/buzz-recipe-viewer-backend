@@ -78,7 +78,9 @@ exports.setFavorites = async (user_id) => {
     // filter by subscribing
     return subscribingUserIds.includes(tweet.user.id_str);
   }).forEach(tweet => {
-    tweet.tags = [];  // default: empty
+    tweet.tags = [
+      tweet.user.name, tweet.user.screen_name
+    ];  // default: name & screen name
     tweet.rate = 0;  // default: 0
     tweet.hide = false;  // default: false
     addedFavorites.push(tweet)
