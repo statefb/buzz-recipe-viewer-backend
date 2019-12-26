@@ -4,8 +4,6 @@
 const jobs = require('./jobs');
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-// admin.initializeApp(functions.config().firebase);
-// admin.initializeApp();
 
 const api = require('./api')
 const db = require('./db')
@@ -32,4 +30,16 @@ exports.addTag = functions.https.onCall(async (data, context) => {
 
 exports.deleteTag = functions.https.onCall(async (data, context) => {
   await db.deleteTag(data.user_id, data.tweet_id, data.text)
+})
+
+exports.onUsersPostCreate = functions.firestore.document(
+  "/users/{twitterUid}/favorites/{id_str}"
+).onCreate(async (snapshot, context) => {
+  await db.copyToRootWithUsersFavoriteSnapshot(snapshot, context);
+})
+
+exports.onUsersPostUpdate = functions.firestore.document(
+  "/users/{twitterUid}/favorites/{id_str}"
+).onUpdate(async (change, context) => {
+  await db.copyToRootWithUsersFavoriteSnapshot(change.after, context);
 })

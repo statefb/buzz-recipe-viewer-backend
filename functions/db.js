@@ -1,7 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const util = require('./util');
-// admin.initializeApp(functions.config().firebase);
 
 var serviceAccount = require("./firebase_credential.json");
 var defaultApp = admin.initializeApp({
@@ -146,4 +145,16 @@ exports.deleteTag = async (user_id, tweet_id, text) => {
     tag.splice(idx, idx);
   }
   await twRef.update({tag: tag});
+}
+
+exports.copyToRootWithUsersFavoriteSnapshot = async (snapshot, context) => {
+  const twitterUid = context.params.twitterUid;
+  const tweet = snapshot.data();
+  const tags = tweet.tags;
+  const docRef = db.collection("users").doc(twitterUid);
+  tags.forEach(async tag => {
+    await docRef.update({
+      tags: admin.firestore.FieldValue.arrayUnion(tag)
+    });
+  })
 }
