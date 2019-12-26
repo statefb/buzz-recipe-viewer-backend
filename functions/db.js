@@ -147,14 +147,21 @@ exports.deleteTag = async (user_id, tweet_id, text) => {
   await twRef.update({tag: tag});
 }
 
-exports.copyToRootWithUsersFavoriteSnapshot = async (snapshot, context) => {
+exports.reflectTagsToRoot = async (tags, context, addOrRemove) => {
   const twitterUid = context.params.twitterUid;
-  const tweet = snapshot.data();
-  const tags = tweet.tags;
   const docRef = db.collection("users").doc(twitterUid);
-  tags.forEach(async tag => {
-    await docRef.update({
-      tags: admin.firestore.FieldValue.arrayUnion(tag)
-    });
-  })
+  if (addOrRemove === "add") {
+    tags.forEach(async tag => {
+      await docRef.update({
+        tags: admin.firestore.FieldValue.arrayUnion(tag)
+      });
+    })
+  } else {
+    tags.forEach(async tag => {
+      await docRef.update({
+        tags: admin.firestore.FieldValue.arrayRemove(tag)
+      });
+    })
+  }
+  
 }

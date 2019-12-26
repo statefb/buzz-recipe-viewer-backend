@@ -35,11 +35,23 @@ exports.deleteTag = functions.https.onCall(async (data, context) => {
 exports.onUsersPostCreate = functions.firestore.document(
   "/users/{twitterUid}/favorites/{id_str}"
 ).onCreate(async (snapshot, context) => {
-  await db.copyToRootWithUsersFavoriteSnapshot(snapshot, context);
+  const tags = snapshot.data().tags;
+  await db.reflectTagsToRoot(tags, context, "add");
 })
 
 exports.onUsersPostUpdate = functions.firestore.document(
   "/users/{twitterUid}/favorites/{id_str}"
 ).onUpdate(async (change, context) => {
-  await db.copyToRootWithUsersFavoriteSnapshot(change.after, context);
+  const beforeTags = change.before.data().tags;
+  const afterTags = change.after.data().tags;
+  let tags;
+  if (beforeTags.length > afterTags.length) {
+    // remove
+    tags = beforeTags.filter(tag => !afterTags.includes(tag));
+    await db.reflectTagsToRoot(tags, context, "remove");
+  } else {
+    // add
+    tags = afterTags.filter(tag => !beforeTags.includes(tag));
+    await db.reflectTagsToRoot(tags, context, "add");
+  }
 })
