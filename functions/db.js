@@ -1,7 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const util = require('./util');
-// admin.initializeApp(functions.config().firebase);
 
 var serviceAccount = require("./firebase_credential.json");
 var defaultApp = admin.initializeApp({
@@ -89,10 +88,10 @@ delOrAddSub = async (
 exports.createLog = async (user_id, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
-  const dateTime = util.getNowDateStr();
+  const dateTime = admin.firestore.FieldValue.serverTimestamp()
   try {
     await logRef.doc(dateTime).set({
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: dateTime,
       success: success,
       error: error,
       twitter_user_id: user_id,
@@ -146,4 +145,37 @@ exports.deleteTag = async (user_id, tweet_id, text) => {
     tag.splice(idx, idx);
   }
   await twRef.update({tag: tag});
+}
+
+exports.reflectTagsToRoot = async (tags, context, addOrRemove) => {
+  const twitterUid = context.params.twitterUid;
+  const docRef = db.collection("users").doc(twitterUid);
+  if (addOrRemove === "add") {
+    // add tags
+    tags.forEach(async tag => {
+      await docRef.update({
+        tags: admin.firestore.FieldValue.arrayUnion(tag)
+      });
+    })
+  } else {
+    // remove tags
+    tags.forEach(async tag => {
+      /**
+       * remove the tag if there's no tag in all favorites.
+       */
+      const query = docRef.collection("favorites")
+        .where("tags", "array-contains", tag);
+      const snapshot = await query.get();
+      if (snapshot.docs.length === 0){
+        await docRef.update({
+          tags: admin.firestore.FieldValue.arrayRemove(tag)
+        });
+      }
+    })
+  }
+}
+
+exports.getAllUserId = async () => {
+  const snapshot = await db.collection('users').get();
+  return snapshot.docs.map(doc => doc.data().twitterUid);
 }
