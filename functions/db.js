@@ -151,17 +151,26 @@ exports.reflectTagsToRoot = async (tags, context, addOrRemove) => {
   const twitterUid = context.params.twitterUid;
   const docRef = db.collection("users").doc(twitterUid);
   if (addOrRemove === "add") {
+    // add tags
     tags.forEach(async tag => {
       await docRef.update({
         tags: admin.firestore.FieldValue.arrayUnion(tag)
       });
     })
   } else {
+    // remove tags
     tags.forEach(async tag => {
-      await docRef.update({
-        tags: admin.firestore.FieldValue.arrayRemove(tag)
-      });
+      /**
+       * remove the tag if there's no tag in all favorites.
+       */
+      const query = docRef.collection("favorites")
+        .where("tags", "array-contains", tag);
+      const snapshot = await query.get();
+      if (snapshot.length !== 0){
+        await docRef.update({
+          tags: admin.firestore.FieldValue.arrayRemove(tag)
+        });
+      }
     })
   }
-  
 }
