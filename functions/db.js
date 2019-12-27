@@ -88,10 +88,10 @@ delOrAddSub = async (
 exports.createLog = async (user_id, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
-  const dateTime = util.getNowDateStr();
+  const dateTime = admin.firestore.FieldValue.serverTimestamp()
   try {
     await logRef.doc(dateTime).set({
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: dateTime,
       success: success,
       error: error,
       twitter_user_id: user_id,
@@ -166,7 +166,7 @@ exports.reflectTagsToRoot = async (tags, context, addOrRemove) => {
       const query = docRef.collection("favorites")
         .where("tags", "array-contains", tag);
       const snapshot = await query.get();
-      if (snapshot.length !== 0){
+      if (snapshot.docs.length === 0){
         await docRef.update({
           tags: admin.firestore.FieldValue.arrayRemove(tag)
         });
