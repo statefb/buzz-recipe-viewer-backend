@@ -12,6 +12,14 @@ exports.setFollowings = functions.https.onCall(async (data, context) => {
   await jobs.setFollowings(data.user_id);
 })
 
+exports.scheduledSetFollowings = functions.pubsub.schedule('0 0 * * *')
+  .timeZone('America/New_York').onRun(async (context) => {
+  const userIds = await db.getAllUserId();
+  userIds.forEach(id => {
+    jobs.setFollowings(id)
+  })
+});
+
 exports.subscribe = functions.https.onCall(async (data, context) => {
   await db.changeSubscribeStatus(data.user_id, data.twitter_user_id, true);
 })
@@ -23,6 +31,14 @@ exports.unsubscribe = functions.https.onCall(async (data, context) => {
 exports.setFavorites = functions.https.onCall(async (data, context) => {
   await jobs.setFavorites(data.user_id);
 })
+
+exports.scheduledSetFavorites = functions.pubsub.schedule('0 0 * * *')
+  .timeZone('America/New_York').onRun(async (context) => {
+  const userIds = await db.getAllUserId();
+  userIds.forEach(id => {
+    jobs.setFavorites(id)
+  })
+});
 
 exports.addTag = functions.https.onCall(async (data, context) => {
   await db.addTag(data.user_id, data.tweet_id, data.text)
