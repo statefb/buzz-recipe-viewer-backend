@@ -8,16 +8,19 @@ const admin = require('firebase-admin');
 const api = require('./api')
 const db = require('./db')
 
+const TIME_SPAN = '0 * * * *';
+// const TIME_SPAN = "every 5 minutes";
+
 exports.setFollowings = functions.https.onCall(async (data, context) => {
   await jobs.setFollowings(data.user_id);
 })
 
-exports.scheduledSetFollowings = functions.pubsub.schedule('0 0 * * *')
+exports.scheduledSetFollowings = functions.pubsub.schedule(TIME_SPAN)
   .timeZone('America/New_York').onRun(async (context) => {
   const userIds = await db.getAllUserId();
-  userIds.forEach(id => {
-    jobs.setFollowings(id)
-  })
+  const promises = userIds.map(id => jobs.setFollowings(id))
+  await Promise.all(promises);
+  return
 });
 
 exports.subscribe = functions.https.onCall(async (data, context) => {
@@ -32,12 +35,11 @@ exports.setFavorites = functions.https.onCall(async (data, context) => {
   await jobs.setFavorites(data.user_id);
 })
 
-exports.scheduledSetFavorites = functions.pubsub.schedule('0 0 * * *')
+exports.scheduledSetFavorites = functions.pubsub.schedule(TIME_SPAN)
   .timeZone('America/New_York').onRun(async (context) => {
   const userIds = await db.getAllUserId();
-  userIds.forEach(id => {
-    jobs.setFavorites(id)
-  })
+  const promises = userIds.map(id => jobs.setFavorites(id));
+  await Promise.all(promises);
 });
 
 exports.addTag = functions.https.onCall(async (data, context) => {

@@ -8,8 +8,8 @@ var defaultApp = admin.initializeApp({
   databaseURL: "https://buzz-recipe-viewer-dev.firebaseio.com"
 });
 
-
 let db = admin.firestore();
+const BATCH_SIZE = 50;
 
 exports.getFollowings = async (user_id) => {
   const folRef = db.collection("users")
@@ -50,7 +50,7 @@ exports.addFavorites = async (user_id, favorites) => {
 }
 
 delOrAddObjects = async (user_id, objects, operation, collectionName) => {
-  const batchSize = 50;
+  const batchSize = BATCH_SIZE;
   const ref = db.collection("users")
     .doc(user_id).collection(collectionName);
 
@@ -88,7 +88,8 @@ delOrAddSub = async (
 exports.createLog = async (user_id, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
-  const dateTime = admin.firestore.FieldValue.serverTimestamp()
+  const dateTime = util.getNowDateStr();
+  dateTime.toString();
   try {
     await logRef.doc(dateTime).set({
       createdAt: dateTime,
@@ -99,6 +100,11 @@ exports.createLog = async (user_id, collection_name, error) => {
     });  
   } catch (err) {
     console.log("failed to set log.")
+    console.log({
+      user_id: user_id,
+      collection_name: collection_name,
+      error: error
+    });
     console.log(err);
   }
 }
