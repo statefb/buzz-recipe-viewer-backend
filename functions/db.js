@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const axios = require('axios');
 const util = require('./util');
 
 var serviceAccount = require("./firebase_credential.json");
@@ -184,4 +185,22 @@ exports.reflectTagsToRoot = async (tags, context, addOrRemove) => {
 exports.getAllUserId = async () => {
   const snapshot = await db.collection('users').get();
   return snapshot.docs.map(doc => doc.data().twitterUid);
+}
+
+exports.backupFirestoreToStorage = async () => {
+  try {
+    const accessToken = await admin.credential
+      .applicationDefault()
+      .getAccessToken()
+      .then(res => res.access_token);
+    const projectID = process.env.GCLOUD_PROJECT;
+    const response = await axios.post(
+      `https://firestore.googleapis.com/v1/projects/${projectID}/databases/(default):exportDocuments`,
+      { outputUriPrefix: `gs://${projectID}-firestore-backup` },
+      { headers: {Authorization: `Bearer ${accessToken}` } }
+    )
+    console.log(response)
+  } catch (error) {
+    console.error(error)
+  }
 }

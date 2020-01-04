@@ -73,3 +73,8 @@ exports.onUsersPostUpdate = functions.firestore.document(
     await db.reflectTagsToRoot(tags, context, "add");
   }
 })
+
+exports.backupFirestore = functions.pubsub.schedule("0 0 * * *")
+  .timeZone('America/New_York').onRun(async (context) => {
+  await db.backupFirestoreToStorage();
+});
