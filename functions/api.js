@@ -98,6 +98,45 @@ exports.getAllFollowings = async (user_id) => {
   return await getAllFollowingsSub([], params)
 }
 
+exports.getReplies = () => {
+  /**
+   * 特定のツイートに対する返信を取得する
+   * 2020/1/27:
+   *  search APIを使い実装を試みたものの、self replyを取得する方法がわからず…
+   */
+  return new Promise((resolve, reject) => {
+    const params = {
+      q: 'to:syunkon0507',
+      // q: 'from:syunkon0507&@:syunkon0507',
+      result_type: 'mixed',
+      count: 100,
+      since_id: "1218528879733661696",
+      include_entities: false,
+    };
+    client.get('search/tweets', params, (error, data, response) => {
+      if (!error) {
+        const processedData = data.statuses
+          .filter(tweet => {
+            return tweet.in_reply_to_status_id_str === "1218528879733661696"
+            // return tweet.in_reply_to_screen_name === 'syunkon0507'
+          })
+          // .filter(tweet => {
+          //   return tweet.screen_name === 'syunkon0507'
+          // })
+          .sort((tweetA, tweetB) => {
+            const tweetAId = bigInt(tweetA.id_str);
+            const tweetBId = bigInt(tweetB.id_str);
+            return tweetAId.compare(tweetBId);
+          })
+          .map(tweet => tweet.text)
+        resolve(processedData)
+      } else {
+        reject(error)
+      }
+    })
+  })
+}
+
 exports.getFavoritesFilteredByUserIds = async (userIds) => {
   /**
    * いいねの中から、指定されたユーザーIDのtweetのみを取得する

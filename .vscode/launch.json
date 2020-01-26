@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "nodemon",
-            "runtimeExecutable": "nodemon",
+            "name": "node",
+            "runtimeExecutable": "node",
             "program": "${workspaceFolder}/functions/debug.js",
             "cwd": "${workspaceFolder}/functions",
             "restart": true,
