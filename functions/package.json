@@ -10,7 +10,7 @@
     "logs": "firebase functions:log"
   },
   "engines": {
-    "node": "^8.13.0"
+    "node": "8"
   },
   "dependencies": {
     "big-integer": "^1.6.48",
