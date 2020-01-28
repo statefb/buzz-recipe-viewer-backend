@@ -1,8 +1,3 @@
-## TODO
-* db.getCookDevIndsの実装
-* db.getFavoritesの実装
-* jobs.updateの定期実行
-* jobs.addFavoritesの実装
-
 ## memo
-`$firebase deploy`
+### DB backup import
+`$gcloud beta firestore import gs://buzz-recipe-viewer-dev-firestore-backup/2020-01-04T15:41:02_50728`

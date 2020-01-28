@@ -1,5 +1,6 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
+const axios = require('axios');
 const util = require('./util');
 
 var serviceAccount = require("./firebase_credential.json");
@@ -8,8 +9,8 @@ var defaultApp = admin.initializeApp({
   databaseURL: "https://buzz-recipe-viewer-dev.firebaseio.com"
 });
 
-
 let db = admin.firestore();
+const BATCH_SIZE = 50;
 
 exports.getFollowings = async (user_id) => {
   const folRef = db.collection("users")
@@ -50,7 +51,7 @@ exports.addFavorites = async (user_id, favorites) => {
 }
 
 delOrAddObjects = async (user_id, objects, operation, collectionName) => {
-  const batchSize = 50;
+  const batchSize = BATCH_SIZE;
   const ref = db.collection("users")
     .doc(user_id).collection(collectionName);
 
@@ -88,7 +89,8 @@ delOrAddSub = async (
 exports.createLog = async (user_id, collection_name, error) => {
   const success = error ? false : true;
   const logRef = db.collection("log")
-  const dateTime = admin.firestore.FieldValue.serverTimestamp()
+  const dateTime = util.getNowDateStr();
+  dateTime.toString();
   try {
     await logRef.doc(dateTime).set({
       createdAt: dateTime,
@@ -99,6 +101,11 @@ exports.createLog = async (user_id, collection_name, error) => {
     });  
   } catch (err) {
     console.log("failed to set log.")
+    console.log({
+      user_id: user_id,
+      collection_name: collection_name,
+      error: error
+    });
     console.log(err);
   }
 }
@@ -180,6 +187,7 @@ exports.getAllUserId = async () => {
   return snapshot.docs.map(doc => doc.data().twitterUid);
 }
 
+
 exports.addTagLength = async (user_id) => {
   /**
    * タグの総数を、対象ユーザーすべてのツイートに対し付与する
@@ -191,4 +199,22 @@ exports.addTagLength = async (user_id) => {
     const data = doc.data();
     twRef.doc(data.id_str).update({num_of_tags: data.tags.length});
   })
+}
+
+exports.backupFirestoreToStorage = async () => {
+  try {
+    const accessToken = await admin.credential
+      .applicationDefault()
+      .getAccessToken()
+      .then(res => res.access_token);
+    const projectID = process.env.GCLOUD_PROJECT;
+    const response = await axios.post(
+      `https://firestore.googleapis.com/v1/projects/${projectID}/databases/(default):exportDocuments`,
+      { outputUriPrefix: `gs://${projectID}-firestore-backup` },
+      { headers: {Authorization: `Bearer ${accessToken}` } }
+    )
+    console.log(response)
+  } catch (error) {
+    console.error(error)
+  }
 }

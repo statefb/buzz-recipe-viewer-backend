@@ -35,6 +35,7 @@ const db = require("./db")
 //   .then(() => db.deleteTag("1308112076", "1009745542690234368", "orange"))
 //   .then(() => db.deleteTag("1308112076", "1009745542690234368", "hoge"))
 
+
 // api.getReplies()
 //   .then(res => {
 //     console.log(res);
@@ -52,3 +53,16 @@ db.addTagLength("1308112076")
   .catch(err => {
     console.log(err)
   })
+
+// db.getAllUserId()
+//   .then(res => {
+//     res.forEach(id => {
+//       jobs.setFollowings(id)
+//     })
+//   })
+//   .catch(err => console.log(err))
+
+// const userIds = await db.getAllUserId();
+//   userIds.forEach(id => {
+//     jobs.setFollowings(id)
+//   })
