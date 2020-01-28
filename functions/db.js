@@ -179,3 +179,16 @@ exports.getAllUserId = async () => {
   const snapshot = await db.collection('users').get();
   return snapshot.docs.map(doc => doc.data().twitterUid);
 }
+
+exports.addTagLength = async (user_id) => {
+  /**
+   * タグの総数を、対象ユーザーすべてのツイートに対し付与する
+   */
+  const twRef = db.collection("users")
+    .doc(user_id).collection("favorites");
+  const snapshot = await twRef.get();
+  snapshot.docs.forEach(doc => {
+    const data = doc.data();
+    twRef.doc(data.id_str).update({num_of_tags: data.tags.length});
+  })
+}
