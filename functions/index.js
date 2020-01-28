@@ -15,14 +15,6 @@ exports.setFollowings = functions.https.onCall(async (data, context) => {
   await jobs.setFollowings(data.user_id);
 })
 
-exports.scheduledSetFollowings = functions.pubsub.schedule(TIME_SPAN)
-  .timeZone('America/New_York').onRun(async (context) => {
-  const userIds = await db.getAllUserId();
-  const promises = userIds.map(id => jobs.setFollowings(id))
-  await Promise.all(promises);
-  return
-});
-
 exports.subscribe = functions.https.onCall(async (data, context) => {
   await db.changeSubscribeStatus(data.user_id, data.twitter_user_id, true);
 })
@@ -34,13 +26,6 @@ exports.unsubscribe = functions.https.onCall(async (data, context) => {
 exports.setFavorites = functions.https.onCall(async (data, context) => {
   await jobs.setFavorites(data.user_id);
 })
-
-exports.scheduledSetFavorites = functions.pubsub.schedule(TIME_SPAN)
-  .timeZone('America/New_York').onRun(async (context) => {
-  const userIds = await db.getAllUserId();
-  const promises = userIds.map(id => jobs.setFavorites(id));
-  await Promise.all(promises);
-});
 
 exports.addTag = functions.https.onCall(async (data, context) => {
   await db.addTag(data.user_id, data.tweet_id, data.text)
@@ -74,7 +59,23 @@ exports.onUsersPostUpdate = functions.firestore.document(
   }
 })
 
+/*
+* Cron tasks-----------------------------------
+*/
+exports.scheduledSetFollowingsAndFavorites = functions.pubsub.schedule(TIME_SPAN)
+  .timeZone('America/New_York').onRun(async (context) => {
+    const userIds = await db.getAllUserId();
+    const promises = [];
+    userIds.forEach(id => {
+      promises.push(jobs.setFavorites(id))
+      promises.push(jobs.setFollowings(id))
+      promises.push(db.addTagLength(id))
+    });
+    await Promise.all(promises);
+    return
+});
+
 exports.backupFirestore = functions.pubsub.schedule("0 0 * * *")
   .timeZone('America/New_York').onRun(async (context) => {
-  await db.backupFirestoreToStorage();
+    await db.backupFirestoreToStorage();
 });
