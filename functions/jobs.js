@@ -83,6 +83,8 @@ exports.setFavorites = async (user_id) => {
     ];  // default: name & screen name
     tweet.rate = 0;  // default: 0
     tweet.hide = false;  // default: false
+    tweet.num_of_tags = 2;  // default: 2 (name & screen name)
+    tweet.should_tag = true;  // default: should tag
     addedFavorites.push(tweet)
   });
   const addPromise = db.addFavorites(user_id, addedFavorites);
