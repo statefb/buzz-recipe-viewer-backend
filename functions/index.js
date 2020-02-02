@@ -65,13 +65,20 @@ exports.onUsersPostUpdate = functions.firestore.document(
 exports.scheduledSetFollowingsAndFavorites = functions.pubsub.schedule(TIME_SPAN)
   .timeZone('America/New_York').onRun(async (context) => {
     const userIds = await db.getAllUserId();
-    const promises = [];
+    let promises = [];
+    // at first, update favorites and followings
     userIds.forEach(id => {
       promises.push(jobs.setFavorites(id))
       promises.push(jobs.setFollowings(id))
-      promises.push(db.addTagLength(id))
     });
     await Promise.all(promises);
+    // add tag length to each tweet
+    promises = [];
+    userIds.forEach(async id => {
+      promises.push(db.addTagLength(id))
+    })
+    await Promise.all(promises);
+    
     return
 });
 

@@ -190,14 +190,18 @@ exports.getAllUserId = async () => {
 
 exports.addTagLength = async (user_id) => {
   /**
-   * タグの総数を、対象ユーザーすべてのツイートに対し付与する
+   * タグの総数を、対象ユーザーすべてのツイートに対し付与する。
+   * ※タグ数が2以下の場合はタグ付けを促すために、should_tagを付与する
    */
   const twRef = db.collection("users")
     .doc(user_id).collection("favorites");
   const snapshot = await twRef.get();
   snapshot.docs.forEach(doc => {
     const data = doc.data();
-    twRef.doc(data.id_str).update({num_of_tags: data.tags.length});
+    twRef.doc(data.id_str).update({
+      num_of_tags: data.tags.length,
+      should_tag: data.tags.length <= 2  // タグ数が2以下の場合はタグ付けを促せるように
+    });
   })
 }
 
