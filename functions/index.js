@@ -35,6 +35,10 @@ exports.deleteTag = functions.https.onCall(async (data, context) => {
   await db.deleteTag(data.user_id, data.tweet_id, data.text)
 })
 
+exports.updateRecipeNote = functions.https.onCall(async (data, context) => {
+  await db.updateDetailNote(data.user_id, data.tweet_id, data.note)
+})
+
 exports.onUsersPostCreate = functions.firestore.document(
   "/users/{twitterUid}/favorites/{id_str}"
 ).onCreate(async (snapshot, context) => {

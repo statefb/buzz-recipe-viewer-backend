@@ -68,8 +68,15 @@ const db = require("./db")
 //   })
 
 
-db.updateDetailNote("1308112076", "1008987942197456900", {
+db.updateDetailNote("1308112076", "1008987942197456896", {
   recipe: "れしぴほげー",
   ingredients: "材料ほげほげ",
   others: "その他ほげほげ"
 })
+  .then(res => {
+    console.log(res);
+    return res
+  })
+  .catch(err => {
+    console.log(err);
+  })
