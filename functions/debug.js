@@ -45,14 +45,14 @@ const db = require("./db")
 //     console.log(err);
 //   })
 
-db.addTagLength("1308112076")
-  .then(res => {
-    console.log(res)
-    return res
-  })
-  .catch(err => {
-    console.log(err)
-  })
+// db.addTagLength("1308112076")
+//   .then(res => {
+//     console.log(res)
+//     return res
+//   })
+//   .catch(err => {
+//     console.log(err)
+//   })
 
 // db.getAllUserId()
 //   .then(res => {
@@ -66,3 +66,10 @@ db.addTagLength("1308112076")
 //   userIds.forEach(id => {
 //     jobs.setFollowings(id)
 //   })
+
+
+db.updateDetailNote("1308112076", "1008987942197456900", {
+  recipe: "れしぴほげー",
+  ingredients: "材料ほげほげ",
+  others: "その他ほげほげ"
+})

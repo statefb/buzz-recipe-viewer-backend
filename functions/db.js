@@ -205,6 +205,13 @@ exports.addTagLength = async (user_id) => {
   })
 }
 
+exports.updateDetailNote = async (user_id, tweet_id, detailNote) => {
+  const twRef = db.collection("users")
+    .doc(user_id).collection("favorites").doc(tweet_id);
+  const doc = await twRef.get();
+  await twRef.update({detailNote: detailNote})
+}
+
 exports.backupFirestoreToStorage = async () => {
   try {
     const accessToken = await admin.credential
